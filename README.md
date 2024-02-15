@@ -31,17 +31,20 @@ Thermal acclimation effects on locomotory performance have been widely documente
 * README.md
 * LICENSE.txt
 * data
-  Folder of experimental data as .csv files used in data analysis for manuscript  
-  * ZoosporeVelocityData
-  * ZoosporeVelocityVariableDescriptions
-  * ZoosporeCTmaxData
-  * ZoosporeCTmaxVariableDescriptions
+  Folder of experimental data as .csv files used in data analysis for manuscript
   * StageTemperatureAdjustmentData
   * StageTemperatureAdjustmentVariableDescriptions
+  * ZoosporeCTmaxData
+  * ZoosporeCTmaxVariableDescriptions
+  * ZoosporeVelocityData
+  * ZoosporeVelocitySummaryData
+  * ZoosporeVelocityVariableDescriptions
+
+  
 * code
   Folder of statistical R code used to analyze data as .R files
-  * Zoospore velocity and critical thermal maxima code  
-  * Stage temperature predictions code
-
+  * StageTemperatureAdjustmentCode
+  * ZoosporeCTmaxCode
+  * ZoosporeVelocityCode
 ### Variable Descriptions
 
