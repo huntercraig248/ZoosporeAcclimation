@@ -1,0 +1,6 @@
+Column Header,Description
+Trial,Number designated to each sample prior to temperature recordings. Trials 1-5 were removed because they used a different protocol.
+Time_min,Time in minutes from the initial temperature measurement of the sample when it was placed on the hemacytometer.
+Temp,Current temperature reading at a given minute of the sample on the hemacytometer.
+T.start,Starting temperature (temperature at Time 0) of the sample on the hemacytometer. 
+RoomTemp,Room temperature reading at the beginning of the trial. 
