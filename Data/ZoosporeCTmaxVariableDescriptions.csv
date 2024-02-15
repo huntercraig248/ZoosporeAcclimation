@@ -1,0 +1,27 @@
+Column Header,Description
+Block,Temporal block of each trial
+AccInc,Acclimation incubator number
+AccTemp,Target acclimation temperature in degrees C
+ZspCountGoPro,Actual quantification of how many zoospores were observed in each GoPro photo
+StartingQuantityZsp,Estimate of zoospore density moving at beginning of each ramping trial
+AvgHOBOTemp,Average HOBO temperature reading over entire acclimation period in degrees C
+CurrentAccTemp,Digital thermometer reading in the incubator at the time the sample was taken out of the acclimation incubator
+StartTemp,First temperature probe reading when sample was placed on slide for ramping trial
+CurrentHOBOTemp,Most recent HOBO reading from the acclimation incubator to the time the sample was removed from the incubator for the ramping trial
+StartTime,Military time sample was placed on slide and ramping procedure began
+50Temp,Critical thermal maximum (50% zoospores immobile) in degrees C
+50Time,Military time when critical thermal maximum (50%) was reached
+100Temp,Critical thermal maximum (100% zoospores immobile) in degrees C
+100Time,Military time when critical thermal maximum (100%) was reached
+Observer,"Identity of person observing zoospores and making estimates of number and proportion moving, as well as Ctmax estimates. Blind to acclimation treatment, ramping temperature, and ramping time"
+Partner,"Identity of person recording data. Not blind to acclimation treatment, current temperature reading, or current time reading."
+DateObserved,Date Ctmax trial was run
+DateInoculated,Date sample was initially grown in an agar and tryptone petri dish
+DateAcclimated,Date sample's petri dish was placed into the acclimation incubator
+RoomTemp,Room temperature reading at the beginning of the block in degrees C
+MinutesTo50,Minutes that it took to reach Ctmax (50%) from the start of the ramping trial
+MinutesTo100,Minutes that it took to reach Ctmax (100%) from the start of the ramping trial
+HeatingRateTo100PerMinute,Degrees per minute from ramping trial beginning to Ctmax (100%)
+InitialPercentMoving,Observer estimate of the proportion of zoospores that were mobile at the beginning of the ramping period
+Tryptone,Old or newly purchased tryptone for petri dish
+Agar,Old or newly purchased agar for petri dish
