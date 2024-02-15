@@ -46,5 +46,3 @@ Thermal acclimation effects on locomotory performance have been widely documente
   * StageTemperatureAdjustmentCode
   * ZoosporeCTmaxCode
   * ZoosporeVelocityCode
-### Variable Descriptions
-
