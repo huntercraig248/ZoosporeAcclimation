@@ -1,0 +1,1108 @@
+#ZoosporeCTmaxDatasheet#
+#Primary CTmax Data#
+mydata<-read.csv(file.choose())
+attach(mydata)
+names(mydata)
+
+#ZoosporeCTmaxSummaryData#
+mydata2<-read.csv(file.choose())
+
+#Libraries#
+library(car)
+library(lme4)
+library(ggplot2)
+library(gridExtra)
+
+##############################
+##############################
+##############################
+##Need dataset same for all models, no missing variables
+cleandata<-subset(mydata, StartingQuantityZsp>=0)
+cleandata1<-subset(cleandata, StartingQuantityZsp<550)
+cleandata2<-subset(cleandata1, InitialPercentMoving>=0.7)
+#DON'T USE THIS ONE cleandata3<-subset(cleandata, InitialPercentMoving>=0.6)
+cleandata4<-subset(cleandata2, HeatingRateTo100PerMinute<4)
+
+
+############################################
+#COMPARING digital thermometer models (CurrentAccTemp) to average acclimation period HOBO models (AvgHOBOTemp)#
+
+
+#FINAL MODEL 50% Immobility Number 1#
+model<-lm(X50Temp ~ I((mean(CurrentAccTemp)-CurrentAccTemp)^2)+I(mean(CurrentAccTemp)-CurrentAccTemp)+StartTemp, data=cleandata)
+Anova(model, test="F")
+AIC(model)
+
+Response: X50Temp
+                                              Sum Sq Df F value  Pr(>F)  
+I((mean(CurrentAccTemp) - CurrentAccTemp)^2)  27.672  1  6.0099 0.01827 *
+I(mean(CurrentAccTemp) - CurrentAccTemp)       1.346  1  0.2922 0.59152  
+StartTemp                                     18.034  1  3.9166 0.05409 .
+Residuals                                    202.595 44 
+
+#AIC: 215.3385
+
+model<-lm(X50Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp, data=cleandata)
+Anova(model, test="F")
+summary(model)
+AIC(model)
+Response: X50Temp
+                                        Sum Sq Df F value  Pr(>F)  
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)  17.546  1  3.6525 0.06251 .
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       0.000  1  0.0000 0.99904  
+StartTemp                               11.777  1  2.4516 0.12457  
+Residuals                              211.368 44    
+
+
+#AIC: 217.3732
+
+#######################################################################################################################
+
+###############################################
+#histogram of CTmax data
+
+mydata<-mydata<-read.delim("clipboard")
+attach(mydata)
+names(mydata)
+
+hist(MinutesTo50, right=FALSE, breaks=0:7)
+max(MinutesTo50, na.rm=TRUE)
+
+min(MinutesTo50, na.rm=TRUE)
+
+hist(MinutesTo100, right=FALSE, breaks=0:18)
+###############################################
+
+#Models with cleandata
+#These models are presented in the Results
+
+model<-lm(X50Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata)
+Anova(model, test="F")
+Response: X50Temp
+                                        Sum Sq Df F value  Pr(>F)  
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)  28.568  1  5.7611 0.02058 *
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       2.868  1  0.5785 0.45088  
+Residuals                              223.145 45  
+
+shapiro.test(residuals(model))
+data:  residuals(model)
+W = 0.97045, p-value = 0.2638
+
+plot(model)
+
+model<-lm(X100Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata)
+Anova(model, test="F")
+Response: X100Temp
+                                       Sum Sq Df F value  Pr(>F)  
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)   8.92  1  1.1330 0.29257  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)      25.15  1  3.1966 0.08024 .
+Residuals                              369.82 47  
+
+shapiro.test(residuals(model))
+data:  residuals(model)
+W = 0.94761, p-value = 0.02724
+plot(model)
+
+model<-lm(X50Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartingQuantityZsp+StartTemp, data=cleandata)
+Anova(model, test="F")
+Response: X50Temp
+                                        Sum Sq Df F value  Pr(>F)  
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)   3.015  1  0.6338 0.43034  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       1.139  1  0.2395 0.62705  
+StartingQuantityZsp                      6.833  1  1.4365 0.23726  
+StartTemp                               14.690  1  3.0883 0.08598 .
+Residuals                              204.535 43                  
+---
+shapiro.test(residuals(model))
+W = 0.93673, p-value = 0.01217
+
+plot(model)
+
+
+model<-lm(X100Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartingQuantityZsp+StartTemp, data=cleandata)
+Anova(model, test="F")
+Response: X100Temp
+                                        Sum Sq Df F value    Pr(>F)    
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)  28.192  1  5.3654   0.02515 *  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       2.537  1  0.4829   0.49070    
+StartingQuantityZsp                    118.351  1 22.5240 2.133e-05 ***
+StartTemp                               31.417  1  5.9792   0.01845 *  
+Residuals                              236.450 45       
+
+shapiro.test(residuals(model))
+W = 0.98186, p-value = 0.6327
+
+hist(X100Temp, data=cleandata)
+
+plot(model)
+
+model<-lm(X100Temp ~ StartingQuantityZsp+StartTemp, data=cleandata)
+Anova(model, test="F")
+Response: X100Temp
+                     Sum Sq Df F value   Pr(>F)    
+StartingQuantityZsp  96.953  1  17.086 0.000146 ***
+StartTemp            24.508  1   4.319 0.043174 *  
+Residuals           266.692 47  
+
+shapiro.test(residuals(model))
+data:  residuals(model)
+W = 0.98239, p-value = 0.6562
+
+plot(model)
+
+model<-lm(X50Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartingQuantityZsp+StartTemp, data=cleandata)
+Anova(model, test="F")
+summary(model)
+Response: X50Temp
+                                    Sum Sq Df F value  Pr(>F)  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   5.357  1  1.1356 0.29239  
+StartingQuantityZsp                 21.364  1  4.5292 0.03896 *
+StartTemp                           21.498  1  4.5576 0.03838 *
+Residuals                          207.549 44 
+Call:
+lm(formula = X50Temp ~ I(mean(AvgHOBOTemp) - AvgHOBOTemp) + StartingQuantityZsp + 
+    StartTemp, data = cleandata)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-3.2193 -1.3009 -0.2985  0.9727  5.9910 
+
+Coefficients:
+                                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                        17.221612   3.811089   4.519 4.64e-05 ***
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)  0.061827   0.058017   1.066   0.2924    
+StartingQuantityZsp                 0.004872   0.002289   2.128   0.0390 *  
+StartTemp                           0.384062   0.179902   2.135   0.0384 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 2.172 on 44 degrees of freedom
+  (2 observations deleted due to missingness)
+Multiple R-squared:  0.1755,    Adjusted R-squared:  0.1193 
+F-statistic: 3.122 on 3 and 44 DF,  p-value: 0.03535
+
+shapiro.test(residuals(model))
+W = 0.92616, p-value = 0.004937
+plot(model)
+
+
+hist(residuals(model))
+
+model<-lm(X100Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartingQuantityZsp+StartTemp, data=cleandata)
+Anova(model, test="F")
+summary(model)
+Response: X100Temp
+                                    Sum Sq Df F value    Pr(>F)    
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   2.051  1  0.3565 0.5534022    
+StartingQuantityZsp                 93.355  1 16.2269 0.0002086 ***
+StartTemp                           17.088  1  2.9703 0.0915225 .  
+Residuals                          264.642 46          
+Call:
+lm(formula = X100Temp ~ I(mean(AvgHOBOTemp) - AvgHOBOTemp) + 
+    StartingQuantityZsp + StartTemp, data = cleandata)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-4.6523 -1.4723  0.2425  1.1280  5.0615 
+
+Coefficients:
+                                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                        22.143533   4.152581   5.332 2.86e-06 ***
+I(mean(AvgHOBOTemp) - AvgHOBOTemp) -0.036498   0.061130  -0.597 0.553402    
+StartingQuantityZsp                 0.009813   0.002436   4.028 0.000209 ***
+StartTemp                           0.338932   0.196658   1.723 0.091523 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 2.399 on 46 degrees of freedom
+Multiple R-squared:  0.3336,    Adjusted R-squared:  0.2901 
+F-statistic: 7.674 on 3 and 46 DF,  p-value: 0.0002921
+
+shapiro.test(residuals(model))
+W = 0.98133, p-value = 0.6091
+plot(model)
+
+model<-lm(X50Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata)
+Anova(model, test="F")
+Response: X50Temp
+                                    Sum Sq Df F value Pr(>F)
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   0.014  1  0.0025 0.9604
+Residuals                          251.713 46 
+
+shapiro.test(residuals(model))
+W = 0.97126, p-value = 0.2835
+
+plot(model)
+
+model<-lm(X100Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata)
+Anova(model, test="F")
+Response: X100Temp
+                                   Sum Sq Df F value Pr(>F)
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)  18.35  1  2.3263 0.1338
+Residuals                          378.74 48 )
+
+plot(X100Temp~AvgHOBOTemp)
+shapiro.test(residuals(model))
+W = 0.94033, p-value = 0.01388
+hist(residuals(model))
+plot(model)
+
+model<-lm(StartingQuantityZsp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata)
+Anova(model, test="F")
+Response: StartingQuantityZsp
+                                       Sum Sq Df F value    Pr(>F)    
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2) 354708  1 27.0426 4.261e-06 ***
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)      91909  1  7.0071   0.01101 *  
+Residuals                              616482 47 
+
+shapiro.test(residuals(model))
+W = 0.94005, p-value = 0.01353
+
+plot(model)
+
+model<-lm(StartingQuantityZsp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata)
+Anova(model, test="F")
+Response: StartingQuantityZsp
+                                   Sum Sq Df F value Pr(>F)
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)  14053  1  0.6945 0.4088
+Residuals                          971189 48  
+
+shapiro.test(residuals(model))
+data:  residuals(model)
+W = 0.93063, p-value = 0.00584
+
+plot(model)
+###############################################
+
+#Models with cleandata4
+#These are the same models as above, but run after removing datapoints with very high densities, low proportion moving, or high rates of heating.
+
+model<-lm(X50Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata4)
+Anova(model, test="F")
+
+Response: X50Temp
+                                        Sum Sq Df F value  Pr(>F)  
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)  31.705  1  6.5803 0.01427 *
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       5.009  1  1.0396 0.31419  
+Residuals                              187.907 39   
+
+
+shapiro.test(residuals(model))
+W = 0.9628, p-value = 0.1859
+plot(model)
+
+model<-lm(X100Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata4)
+Anova(model, test="F")
+
+Response: X100Temp
+                                        Sum Sq Df F value  Pr(>F)  
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)   7.575  1  1.1212 0.29601  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)      32.221  1  4.7694 0.03489 *
+Residuals                              270.229 40 
+
+
+shapiro.test(residuals(model))
+W = 0.96007, p-value = 0.1395
+
+plot(model)
+
+model<-lm(X50Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartingQuantityZsp+StartTemp, data=cleandata4)
+Anova(model, test="F")
+
+Response: X50Temp
+                                        Sum Sq Df F value   Pr(>F)   
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)   0.078  1  0.0202 0.887731   
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       2.603  1  0.6737 0.417018   
+StartingQuantityZsp                     12.753  1  3.3004 0.077371 . 
+StartTemp                               39.993  1 10.3502 0.002691 **
+Residuals                              142.966 37  
+
+
+shapiro.test(residuals(model))
+W = 0.90089, p-value = 0.00153
+
+plot(model)
+
+model<-lm(X100Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartingQuantityZsp+StartTemp, data=cleandata4)
+Anova(model, test="F")
+Response: X100Temp
+                                        Sum Sq Df F value   Pr(>F)   
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)  18.545  1  3.6084 0.065098 . 
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       0.134  1  0.0260 0.872727   
+StartingQuantityZsp                     54.041  1 10.5147 0.002468 **
+StartTemp                               37.998  1  7.3934 0.009812 **
+Residuals                              195.302 38
+
+
+shapiro.test(residuals(model))
+W = 0.96755, p-value = 0.2597
+
+plot(model)
+
+model<-lm(X50Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartingQuantityZsp+StartTemp, data=cleandata4)
+Anova(model, test="F")
+summary(model)
+Response: X50Temp
+                                    Sum Sq Df F value   Pr(>F)   
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   4.363  1  1.1590 0.288457   
+StartingQuantityZsp                 33.880  1  9.0003 0.004746 **
+StartTemp                           44.300  1 11.7683 0.001466 **
+Residuals                          143.045 38    
+Call:
+lm(formula = X50Temp ~ I(mean(AvgHOBOTemp) - AvgHOBOTemp) + StartingQuantityZsp + 
+    StartTemp, data = cleandata4)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-2.4980 -1.3907 -0.3779  0.9342  6.2283 
+
+Coefficients:
+                                    Estimate Std. Error t value Pr(>|t|)   
+(Intercept)                        11.047491   3.953305   2.794  0.00810 **
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)  0.056848   0.052804   1.077  0.28846   
+StartingQuantityZsp                 0.007637   0.002546   3.000  0.00475 **
+StartTemp                           0.630751   0.183866   3.430  0.00147 **
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1.94 on 38 degrees of freedom
+  (1 observation deleted due to missingness)
+Multiple R-squared:  0.3504,    Adjusted R-squared:  0.2991 
+F-statistic: 6.832 on 3 and 38 DF,  p-value: 0.0008553
+
+
+shapiro.test(residuals(model))
+W = 0.89788, p-value = 0.001245
+
+plot(model) 
+
+model<-lm(X100Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartingQuantityZsp+StartTemp, data=cleandata4)
+Anova(model, test="F")
+summary(model)
+Response: X100Temp
+                                    Sum Sq Df F value  Pr(>F)  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   5.588  1  1.0192 0.31894  
+StartingQuantityZsp                 39.446  1  7.1938 0.01067 *
+StartTemp                           26.713  1  4.8718 0.03325 *
+Residuals                          213.847 39            
+Call:
+lm(formula = X100Temp ~ I(mean(AvgHOBOTemp) - AvgHOBOTemp) + 
+    StartingQuantityZsp + StartTemp, data = cleandata4)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-4.1852 -1.5133  0.0827  0.9352  4.8465 
+
+Coefficients:
+                                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                        19.480855   4.763992   4.089  0.00021 ***
+I(mean(AvgHOBOTemp) - AvgHOBOTemp) -0.063483   0.062883  -1.010  0.31894    
+StartingQuantityZsp                 0.008158   0.003041   2.682  0.01067 *  
+StartTemp                           0.487612   0.220917   2.207  0.03325 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 2.342 on 39 degrees of freedom
+Multiple R-squared:  0.297,     Adjusted R-squared:  0.2429 
+F-statistic: 5.492 on 3 and 39 DF,  p-value: 0.003027
+
+
+shapiro.test(residuals(model))
+W = 0.96854, p-value = 0.2814
+
+plot(model)
+
+model<-lm(X50Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata4)
+Anova(model, test="F")
+Response: X50Temp
+                                    Sum Sq Df F value Pr(>F)
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   0.581  1  0.1059 0.7466
+Residuals                          219.612 40 
+
+
+shapiro.test(residuals(model))
+W = 0.96649, p-value = 0.2506
+
+plot(model)
+
+model<-lm(X100Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata4)
+Anova(model, test="F")
+
+Response: X100Temp
+                                    Sum Sq Df F value  Pr(>F)  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)  26.384  1   3.894 0.05523 .
+Residuals                          277.804 41 
+
+
+shapiro.test(residuals(model))
+W = 0.95246, p-value = 0.07335
+
+
+plot(model)
+
+model<-lm(StartingQuantityZsp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata4)
+Anova(model, test="F")
+Response: StartingQuantityZsp
+                                       Sum Sq Df F value    Pr(>F)    
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2) 329693  1  49.994 1.496e-08 ***
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)      68041  1  10.318  0.002602 ** 
+Residuals                              263785 40 
+
+
+shapiro.test(residuals(model))
+W = 0.95828, p-value = 0.1199
+
+plot(model)
+
+#######################
+#Results Models in order:
+
+model<-lm(X50Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata)
+Anova(model, test="F")
+Response: X50Temp
+                                        Sum Sq Df F value  Pr(>F)  
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)  28.568  1  5.7611 0.02058 *
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       2.868  1  0.5785 0.45088  
+Residuals                              223.145 45 
+
+model<-lm(X50Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp+StartingQuantityZsp, data=cleandata)
+Anova(model, test="F")
+Response: X50Temp
+                                        Sum Sq Df F value  Pr(>F)  
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)   3.015  1  0.6338 0.43034  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       1.139  1  0.2395 0.62705  
+StartTemp                               14.690  1  3.0883 0.08598 .
+StartingQuantityZsp                      6.833  1  1.4365 0.23726  
+Residuals                              204.535 43   
+
+model<-lm(X100Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata)
+Anova(model, test="F")
+Response: X100Temp
+                                       Sum Sq Df F value  Pr(>F)  
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)   8.92  1  1.1330 0.29257  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)      25.15  1  3.1966 0.08024 .
+Residuals                              369.82 47    
+
+model<-lm(X50Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp+StartingQuantityZsp, data=cleandata)
+Anova(model, test="F")
+Response: X50Temp
+                                    Sum Sq Df F value  Pr(>F)  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   5.357  1  1.1356 0.29239  
+StartTemp                           21.498  1  4.5576 0.03838 *
+StartingQuantityZsp                 21.364  1  4.5292 0.03896 *
+Residuals                          207.549 44   
+
+model<-lm(X100Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp+StartingQuantityZsp, data=cleandata)
+Anova(model, test="F")
+Response: X100Temp
+                                    Sum Sq Df F value    Pr(>F)    
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   2.051  1  0.3565 0.5534022    
+StartTemp                           17.088  1  2.9703 0.0915225 .  
+StartingQuantityZsp                 93.355  1 16.2269 0.0002086 ***
+Residuals                          264.642 46  
+
+model<-lm(X50Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp, data=cleandata)
+Anova(model, test="F")
+Response: X50Temp
+                                    Sum Sq Df F value  Pr(>F)  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   2.902  1  0.5705 0.45398  
+StartTemp                           22.799  1  4.4819 0.03982 *
+Residuals                          228.914 45
+
+model<-lm(X100Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp, data=cleandata)
+Anova(model, test="F")
+Response: X100Temp
+                                   Sum Sq Df F value Pr(>F)
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   5.65  1  0.7417 0.3935
+StartTemp                           20.74  1  2.7230 0.1056
+Residuals                          358.00 47    
+
+model<-lm(StartingQuantityZsp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata)
+Anova(model, test="F")
+Response: StartingQuantityZsp
+                                       Sum Sq Df F value    Pr(>F)    
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2) 354708  1 27.0426 4.261e-06 ***
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)      91909  1  7.0071   0.01101 *  
+Residuals                              616482 47
+
+#######################
+#Testing X100 temp with linear AccTemp and StartTemp
+
+
+model<-lm(X100Temp ~ AvgHOBOTemp, data= cleandata2)
+Anova(model)
+Response: X100Temp
+             Sum Sq Df F value  Pr(>F)  
+AvgHOBOTemp  35.356  1  5.0477 0.02997 *
+Residuals   294.182 42   
+
+plot(X100Temp~ AvgHOBOTemp, col='red', data=mydata)
+points(X100Temp~ AvgHOBOTemp, data=cleandata2)
+abline(model)
+coef(model)
+
+
+
+model1<-lm(X100Temp ~ StartTemp, data=cleandata2)
+Anova(model1)
+Response: X100Temp
+          Sum Sq Df F value  Pr(>F)   
+StartTemp  57.14  1  8.8101 0.00493 **
+Residuals 272.40 42 
+plot(X100Temp~StartTemp, data=cleandata2)
+abline(model1)
+coef(model1)
+
+plot(InitialPercentMoving~AvgHOBOTemp, data=cleandata2)
+plot(InitialPercentMoving~AvgHOBOTemp, data=cleandata4)
+
+plot(InitialPercentMoving~AvgHOBOTemp, data=mydata)
+
+model<-lm(X50Temp ~ AvgHOBOTemp, data= cleandata2)
+Anova(model)
+Response: X50Temp
+             Sum Sq Df F value Pr(>F)
+AvgHOBOTemp   0.877  1  0.1631 0.6884
+
+plot(X50Temp~ AvgHOBOTemp, data=cleandata2)
+abline(model)
+coef(model)
+
+model1<-lm(X50Temp ~ StartTemp, data=cleandata2)
+Anova(model1)
+Response: X50Temp
+           Sum Sq Df F value   Pr(>F)   
+StartTemp  41.335  1  9.4203 0.003796 **
+Residuals 179.902 41   
+plot(X50Temp~StartTemp, data=cleandata2)
+abline(model1)
+coef(model1)
+
+model<-lm(X100Temp ~ AvgHOBOTemp, data= cleandata3)
+Anova(model)
+Response: X50Temp
+             Sum Sq Df F value Pr(>F)
+AvgHOBOTemp   0.877  1  0.1631 0.6884
+Residuals   220.360 41     
+plot(X100Temp~ AvgHOBOTemp, data=cleandata3)
+abline(model)
+coef(model)
+
+model1<-lm(X100Temp ~ StartTemp, data=cleandata3)
+Anova(model1)
+Response: X50Temp
+           Sum Sq Df F value   Pr(>F)   
+StartTemp  41.335  1  9.4203 0.003796 **
+Residuals 179.902 41  
+plot(X100Temp~StartTemp, data=cleandata3)
+abline(model1)
+coef(model1)
+
+
+#######################
+#Testing for quadratic relationship of acc temp with zoospore density
+
+model<-lm(StartingQuantityZsp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata2)
+Anova(model, test="F")
+
+Response: StartingQuantityZsp
+                                       Sum Sq Df F value    Pr(>F)    
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2) 354296  1  52.013 8.288e-09 ***
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)     107276  1  15.749 0.0002844 ***
+Residuals                              279281 41    
+
+
+###########################
+#Testing for just quadratic effect of acc temp on CT100
+
+model<-lm(X100Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata)
+Anova(model, test="F")
+
+Response: X100Temp
+                                       Sum Sq Df F value  Pr(>F)  
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)   8.92  1  1.1330 0.29257  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)      25.15  1  3.1966 0.08024 .
+Residuals                              369.82 47    
+
+############################
+#Curvilinear effect of acc temp on zsp density?
+
+model<-lm(StartingQuantityZsp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp), data=cleandata)
+Anova(model, test="F")
+
+Response: StartingQuantityZsp
+                                       Sum Sq Df F value    Pr(>F)    
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2) 354708  1 27.0426 4.261e-06 ***
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)      91909  1  7.0071   0.01101 *  
+Residuals                              616482 47
+
+
+plot(AvgHOBOTemp, StartingQuantityZsp)
+plot(AvgHOBOTemp,X50Temp)
+
+############################
+
+#Comparing CurrentAccTemp (digital thermometer reading) with AvgHOBOTemp (HOBO temperature reading)
+
+model<-lm(X50Temp ~ I(mean(CurrentAccTemp)-CurrentAccTemp)+StartTemp, data=cleandata)
+Anova(model, test="F")
+Response: X50Temp
+                                          Sum Sq Df F value  Pr(>F)  
+I(mean(CurrentAccTemp) - CurrentAccTemp)   1.549  1  0.3027 0.58493  
+StartTemp                                 21.354  1  4.1731 0.04696 *
+Residuals                                230.267 45 
+AIC(model)
+#219.484
+
+model<-lm(X50Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp, data=cleandata)
+Anova(model, test="F")
+Response: X50Temp
+                                    Sum Sq Df F value  Pr(>F)  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   2.902  1  0.5705 0.45398  
+StartTemp                           22.799  1  4.4819 0.03982 *
+Residuals                          228.914 45  
+AIC(model)
+#219.201
+
+
+model<-lm(X50Temp ~ I(mean(CurrentAccTemp)-CurrentAccTemp)+StartTemp+StartingQuantityZsp, data=cleandata)
+Anova(model, test="F")
+Response: X50Temp
+                                          Sum Sq Df F value  Pr(>F)  
+I(mean(CurrentAccTemp) - CurrentAccTemp)   3.588  1  0.7542 0.38986  
+StartTemp                                 19.922  1  4.1878 0.04672 *
+StartingQuantityZsp                       20.949  1  4.4036 0.04164 *
+Residuals                                209.318 44  
+AIC(model)
+#216.9055
+
+model<-lm(X50Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp+StartingQuantityZsp, data=cleandata)
+Anova(model, test="F")
+Response: X50Temp
+                                    Sum Sq Df F value  Pr(>F)  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   5.357  1  1.1356 0.29239  
+StartTemp                           21.498  1  4.5576 0.03838 *
+StartingQuantityZsp                 21.364  1  4.5292 0.03896 *
+Residuals                          207.549 44   
+
+AIC(model)
+#216.4982
+
+
+model<-lm(X50Temp ~ I((mean(CurrentAccTemp)-CurrentAccTemp)^2)+I(mean(CurrentAccTemp)-CurrentAccTemp)+StartTemp+StartingQuantityZsp, data=cleandata)
+Anova(model, test="F")
+AIC(model)
+
+Response: X50Temp
+                                              Sum Sq Df F value  Pr(>F)  
+I((mean(CurrentAccTemp) - CurrentAccTemp)^2)  12.149  1  2.6496 0.11088  
+I(mean(CurrentAccTemp) - CurrentAccTemp)       3.219  1  0.7019 0.40677  
+StartTemp                                     18.023  1  3.9305 0.05383 .
+StartingQuantityZsp                            5.426  1  1.1833 0.28274  
+Residuals                                    197.169 43
+
+#AIC: 216.0354
+
+model<-lm(X50Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp+StartingQuantityZsp, data=cleandata)
+Anova(model, test="F")
+AIC(model)
+Response: X50Temp
+                                        Sum Sq Df F value  Pr(>F)  
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)   3.015  1  0.6338 0.43034  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       2.062  1  0.4335 0.51377  
+StartTemp                               14.690  1  3.0883 0.08598 .
+StartingQuantityZsp                      6.833  1  1.4365 0.23726  
+Residuals                              204.535 43  
+
+#AIC: 217.7958
+
+model<-lm(X100Temp ~ I((mean(CurrentAccTemp)-CurrentAccTemp)^2)+I(mean(CurrentAccTemp)-CurrentAccTemp)+StartTemp, data=cleandata)
+Anova(model, test="F")
+summary(model)
+AIC(model)
+
+Response: X100Temp
+                                             Sum Sq Df F value Pr(>F)
+I((mean(CurrentAccTemp) - CurrentAccTemp)^2)   7.96  1  1.0537 0.3100
+I(mean(CurrentAccTemp) - CurrentAccTemp)       9.23  1  1.2226 0.2746
+StartTemp                                     18.35  1  2.4308 0.1258
+Residuals                                    347.35 46   
+
+#AIC: 248.8088
+
+model<-lm(X100Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp, data=cleandata)
+Anova(model, test="F")
+summary(model)
+AIC(model)
+Response: X100Temp
+                                       Sum Sq Df F value Pr(>F)
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)   3.20  1  0.4143 0.5230
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       8.36  1  1.0838 0.3033
+StartTemp                               15.02  1  1.9475 0.1696
+Residuals                              354.80 46    
+
+#AIC: 249.8705
+
+
+model<-lm(X100Temp ~ I(mean(CurrentAccTemp)-CurrentAccTemp)+StartTemp, data=cleandata)
+Anova(model, test="F")
+Response: X100Temp
+                                         Sum Sq Df F value Pr(>F)
+I(mean(CurrentAccTemp) - CurrentAccTemp)   8.34  1  1.1036 0.2989
+StartTemp                                 20.68  1  2.7362 0.1048
+Residuals                                355.30 47      
+summary(model)
+AIC(model)
+#247.9412
+
+model<-lm(X100Temp ~ I(mean(CurrentAccTemp)-CurrentAccTemp)+StartTemp+StartingQuantityZsp, data=cleandata)
+Anova(model, test="F")
+Response: X100Temp
+                                          Sum Sq Df F value    Pr(>F)    
+I(mean(CurrentAccTemp) - CurrentAccTemp)   3.777  1  0.6609 0.4204432    
+StartTemp                                 16.699  1  2.9217 0.0941326 .  
+StartingQuantityZsp                       92.388  1 16.1643 0.0002137 ***
+Residuals                                262.915 46  
+summary(model)
+AIC(model)
+#234.8843
+   
+
+model<-lm(X100Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp, data=cleandata)
+Anova(model, test="F")
+summary(model)
+AIC(model)
+#248.3188
+Response: X100Temp
+                                   Sum Sq Df F value Pr(>F)
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   5.65  1  0.7417 0.3935
+StartTemp                           20.74  1  2.7230 0.1056
+Residuals                          358.00 47            
+
+
+model<-lm(X100Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp+StartingQuantityZsp, data=cleandata)
+Anova(model, test="F")
+summary(model)
+AIC(model)
+#235.2115
+
+Anova Table (Type II tests)
+
+Response: X100Temp
+                                    Sum Sq Df F value    Pr(>F)    
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   2.051  1  0.3565 0.5534022    
+StartTemp                           17.088  1  2.9703 0.0915225 .  
+StartingQuantityZsp                 93.355  1 16.2269 0.0002086 ***
+Residuals                          264.642 46                      
+
+model<-lm(X100Temp ~ I((mean(CurrentAccTemp)-CurrentAccTemp)^2)+I(mean(CurrentAccTemp)-CurrentAccTemp)+StartTemp+StartingQuantityZsp, data=mydata)
+Anova(model, test="F")
+summary(model)
+AIC(model)
+
+Response: X100Temp
+                                              Sum Sq Df F value    Pr(>F)    
+I((mean(CurrentAccTemp) - CurrentAccTemp)^2)   4.098  1  0.7124 0.4031039    
+I(mean(CurrentAccTemp) - CurrentAccTemp)       3.429  1  0.5962 0.4440576    
+StartTemp                                     17.847  1  3.1029 0.0849447 .  
+StartingQuantityZsp                           88.529  1 15.3923 0.0002959 ***
+Residuals                                    258.818 45
+
+#AIC: 236.0989
+
+model<-lm(X100Temp ~ I((mean(AvgHOBOTemp)-AvgHOBOTemp)^2)+I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp+StartingQuantityZsp, data=mydata)
+Anova(model, test="F")
+summary(model)
+AIC(model)
+
+Response: X100Temp
+                                        Sum Sq Df F value    Pr(>F)    
+I((mean(AvgHOBOTemp) - AvgHOBOTemp)^2)  28.192  1  5.3654   0.02515 *  
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)       0.645  1  0.1228   0.72767    
+StartTemp                               31.417  1  5.9792   0.01845 *  
+StartingQuantityZsp                    118.351  1 22.5240 2.133e-05 ***
+Residuals                              236.450 45 
+
+#AIC: 231.5794
+
+
+model<-lm(X100Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp, data=cleandata)
+Anova(model, test="F")
+summary(model)
+AIC(model)
+
+Response: X100Temp
+                                   Sum Sq Df F value Pr(>F)
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   1.65  1  0.2000 0.6565
+StartTemp                           12.85  1  1.5548 0.2179
+Residuals                          437.87 53               
+       
+
+#AIC: 248.3188
+
+
+##Final model to present in MS table?
+model<-lm(X100Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartTemp+StartingQuantityZsp, data=cleandata)
+Anova(model, test="F")
+summary(model)
+AIC(model)
+
+Response: X100Temp
+                                    Sum Sq Df F value    Pr(>F)    
+I(mean(AvgHOBOTemp) - AvgHOBOTemp)   2.051  1  0.3565 0.5534022    
+StartTemp                           17.088  1  2.9703 0.0915225 .  
+StartingQuantityZsp                 93.355  1 16.2269 0.0002086 ***
+Residuals                          264.642 46                      
+
+#AIC: [1] 235.2115
+
+##################################
+#Verifying GoPro Counts are correlated with estimates of Zoospore Starting Quantity
+
+cor.test(ZspCountGoPro, StartingQuantityZsp)
+        Pearson's product-moment correlation
+
+data:  ZspCountGoPro and StartingQuantityZsp
+t = 6.1003, df = 23, p-value = 3.192e-06
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ 0.5672059 0.9013040
+sample estimates:
+      cor 
+0.7861454 
+
+
+model<-lm(ZspCountGoPro~StartingQuantityZsp, data=cleandata)
+Anova(model, test="F")
+
+Response: ZspCountGoPro
+                    Sum Sq Df F value    Pr(>F)    
+StartingQuantityZsp 161009  1  37.213 3.192e-06 ***
+Residuals            99513 23
+
+summary(model)
+Call:
+lm(formula = ZspCountGoPro ~ StartingQuantityZsp, data = cleandata)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-116.560  -45.336    1.225   30.113  185.992 
+
+Coefficients:
+                     Estimate Std. Error t value Pr(>|t|)    
+(Intercept)         -39.56136   28.62423  -1.382     0.18    
+StartingQuantityZsp   0.54224    0.08889   6.100 3.19e-06 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 65.78 on 23 degrees of freedom
+  (31 observations deleted due to missingness)
+Multiple R-squared:  0.618,     Adjusted R-squared:  0.6014 
+F-statistic: 37.21 on 1 and 23 DF,  p-value: 3.192e-06
+##################################
+##################################
+##################################
+#Are estimates of zsp proportion moving higher for higher counts?
+
+model<-lm(StartingQuantityZsp~ InitialPercentMoving, data=cleandata)
+Anova(model, test="F")
+
+Response: StartingQuantityZsp
+                     Sum Sq Df F value    Pr(>F)    
+InitialPercentMoving 268162  1   17.95 0.0001022 ***
+Residuals            717080 48                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1  
+
+summary(model)
+Call:
+lm(formula = StartingQuantityZsp ~ InitialPercentMoving, data = cleandata)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-204.99  -99.39  -15.49   83.83  400.61 
+
+Coefficients:
+                     Estimate Std. Error t value Pr(>|t|)    
+(Intercept)            -232.0      118.5  -1.958 0.056038 .  
+InitialPercentMoving    559.4      132.0   4.237 0.000102 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 122.2 on 48 degrees of freedom
+  (6 observations deleted due to missingness)
+Multiple R-squared:  0.2722,    Adjusted R-squared:  0.257 
+F-statistic: 17.95 on 1 and 48 DF,  p-value: 0.0001022
+
+plot(jitter(StartingQuantityZsp), jitter(InitialPercentMoving))
+
+model<-lm(ZspCountGoPro~ InitialPercentMoving, data=cleandata)
+Anova(model, test="F")
+
+Response: ZspCountGoPro
+                     Sum Sq Df F value Pr(>F)
+InitialPercentMoving   4037  1   0.362 0.5533
+Residuals            256485 23   
+
+
+
+plot(ZspCountGoPro, InitialPercentMoving)
+
+plot(StartingQuantityZsp, ZspCountGoPro)
+
+##############################
+##############################
+##############################
+
+############################################
+#Figures
+
+#Starting temperature and 50% immobility temperature#
+ggplot(cleandata, aes(x = StartTemp, y = X50Temp)) +
+  geom_point() +
+  labs(cex.lab=1, x = "Starting Temperature (°C)", y = "Temperature (°C) at 50% Immobility") +
+  theme_bw() +
+  theme(text = element_text(size = 25))   
+
+#Separated by block
+ggplot(cleandata, aes(x = StartTemp, y = X50Temp, color = Block)) +
+  geom_point() +
+  labs(x = "Starting Temperature (°C)", y = "Temperature (°C) at 50% Immobility") +
+  theme_bw()
+
+
+#########################
+#########################
+#########################
+#Final Manuscript Figure 1
+
+library(egg)
+
+plot1<-ggplot(cleandata, aes(x = AvgHOBOTemp, y = X50Temp)) +
+  geom_point() +
+  geom_point(data=mydata2,size=4,shape=1) +
+  geom_errorbar(data=mydata2,aes(ymin=X50Temp-X50TempSE, ymax=X50Temp+X50TempSE), width=.2) +
+  xlab("") + 
+  ylab(expression('CT'[max]^50~'(°C)')) +
+  theme_bw(base_size=18) + 
+  labs(subtitle="a") +
+  theme(plot.margin = unit(c(0, 1, 0.5, 1), "cm"),plot.subtitle = element_text(hjust = -0.1))
+
+plot2<-ggplot(cleandata, aes(x = AvgHOBOTemp, y = X100Temp)) +
+  geom_point() +
+  geom_point(data=mydata2,size=4,shape=1) +
+  geom_errorbar(data=mydata2,aes(ymin=X100Temp-X100TempSE, ymax=X100Temp+X100TempSE), width=.2) +
+  xlab("") + 
+  ylab(expression('CT'[max]^100~'(°C)')) +
+  theme_bw(base_size=18)+ 
+  labs(subtitle="b") +
+  theme(plot.margin = unit(c(-1.7, 1, 0.5, 1), "cm"),plot.subtitle = element_text(hjust = -0.1))
+
+plot3<-ggplot(cleandata, aes(x = AvgHOBOTemp, y = StartingQuantityZsp)) +
+  geom_point() +
+  geom_point(data=mydata2,size=4,shape=1) +
+  geom_errorbar(data=mydata2,aes(ymin=StartingQuantityZsp-StartingDensitySE, ymax=StartingQuantityZsp+StartingDensitySE), width=.2) +
+  labs(x = "Acclimation temperature (°C)", y = "Zoospore density") +
+  theme_bw(base_size=18)+ 
+  labs(subtitle="c") +
+  theme(plot.margin = unit(c(-1.7, 1, 0.5, 1), "cm"),plot.subtitle = element_text(hjust = -0.1))
+
+ggarrange(plot1, plot2, plot3, ncol=1)
+
+
+
+#########################
+#########################
+#########################
+
+#Plot for zoospore density and gopro counts linear relationship with cleandata2
+
+ggplot(cleandata2, aes(x = ZspCountGoPro, y = StartingQuantityZsp)) +
+  geom_point() +
+  xlab("Zoospore density from photographs") + 
+  ylab("Zoospore density estimates") +
+  theme_bw(base_size=25)
+
+#############################
+residuals(model)
+#store, add to dataset
+#pivot again with residuals
+
+ggplot(mydata, aes(x = CurrentAccTemp, y = residuals(model1))) +
+  geom_point() +
+  geom_errorbar(data=mydata2,aes(ymin=X50Temp-X50TempSE, ymax=X50Temp+X50TempSE), width=.2) +
+  labs(x = "Acclimation Temperature (°C)", y = "Temperature (°C) at 50% Immobility") +
+  theme_bw()
+
+######################################################################################
+#Acclimation temperature and 50% immobility temperature#
+ggplot(mydata, aes(x = AvgHOBOTemp, y = X50Temp)) +
+  geom_point() +
+  geom_point(data=mydata2,size=5,shape=0) +
+  geom_errorbar(data=mydata2,aes(ymin=X50Temp-X50TempSE, ymax=X50Temp+X50TempSE), width=.2) +
+  labs(x = "Acclimation Temperature (°C)", y = "Temperature (°C) at 50% Immobility") +
+  theme_bw()
+
+####################################
+#Starting temperature and 100% immobility temperature#
+ggplot(mydata, aes(x = StartTemp, y = X100Temp)) +
+  geom_point() +
+  labs(x = "Starting Temperature (°C)", y = "Temperature (°C) at 100% Immobility") +
+  theme_bw() +
+  theme(text = element_text(size = 25))   
+
+#########
+#Acclimation temperature and 100% immobility temperature#
+ggplot(mydata, aes(x = AvgHOBOTemp, y = X100Temp)) +
+  geom_point() +
+  geom_point(data=mydata2,size=5,shape=0) +
+  geom_errorbar(data=mydata2,aes(ymin=X100Temp-X100TempSE, ymax=X100Temp+X100TempSE), width=.2) +
+  labs(x = "Acclimation Temperature (°C)", y = "Temperature (°C) at 100% Immobility") +
+  theme_bw()
+
+#jitters error bars, how fix??#
+ggplot(mydata, aes(x = jitter(AccTemp, 0.1), y = X100Temp)) +
+  geom_point() +
+  geom_point(data=mydata2,size=5,shape=0) +
+  geom_errorbar(data=mydata2,aes(ymin=X100Temp-X100TempSE, ymax=X100Temp+X100TempSE), width=.2) +
+  labs(x = "Acclimation Temperature (°C)", y = "Temperature (°C) at 100% Immobility") +
+  theme_bw()
+############################################
+#Final Manuscript Figure 2#
+
+#CT50 and Start Temp
+plot1<- ggplot(mydata, aes(x = StartTemp, y = X50Temp)) +
+  geom_point() +
+  xlab("") + 
+  ylab(expression('CT'[max]^50~'(°C)')) +
+  theme_bw(base_size=25) +
+  theme(legend.position="none",
+        plot.margin=unit(c(1.5,0.2,-1,0), "cm"))+ 
+  labs(subtitle="a")
+#CT100 and Start Temp
+plot2<- ggplot(mydata, aes(x = StartTemp, y = X100Temp)) +
+  geom_point() +
+  xlab("Starting temperature (°C)") +
+  ylab(expression('CT'[max]^100~'(°C)')) +
+  theme_bw(base_size=25) +
+  theme(legend.position="none",
+        plot.margin=unit(c(0,0.2,0.5,0), "cm"))+ 
+  labs(subtitle="c")
+#CT50 and Zoospore Density
+plot3<- ggplot(mydata, aes(x = StartingQuantityZsp, y = X50Temp)) +
+  geom_point() +
+  labs(cex.lab=1, x = "", y = "") +
+  theme_bw(base_size=25) +
+  theme(legend.position="none",
+        plot.margin=unit(c(1.5,0.5,-1,0), "cm")) + 
+  labs(subtitle="b")
+#CT100 and Zoospore Density
+plot4<- ggplot(mydata, aes(x = StartingQuantityZsp, y = X100Temp)) +
+  geom_point() +
+  labs(cex.lab=1, x = "Zoospore density", y = "") +
+  theme_bw(base_size=25) +
+  theme(legend.position="none",
+        plot.margin=unit(c(0,0.5,0.5,0), "cm"))+ 
+  labs(subtitle="d")
+
+grid.arrange(plot1, plot3, plot2, plot4, ncol=2)
