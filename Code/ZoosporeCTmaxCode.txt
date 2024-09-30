@@ -28,7 +28,6 @@ cleandata4<-subset(cleandata2, HeatingRateTo100PerMinute<4)
 #COMPARING digital thermometer models (CurrentAccTemp) to average acclimation period HOBO models (AvgHOBOTemp)#
 
 
-#FINAL MODEL 50% Immobility Number 1#
 model<-lm(X50Temp ~ I((mean(CurrentAccTemp)-CurrentAccTemp)^2)+I(mean(CurrentAccTemp)-CurrentAccTemp)+StartTemp, data=cleandata)
 Anova(model, test="F")
 AIC(model)
@@ -57,20 +56,6 @@ Residuals                              211.368 44
 #AIC: 217.3732
 
 #######################################################################################################################
-
-###############################################
-#histogram of CTmax data
-
-mydata<-mydata<-read.delim("clipboard")
-attach(mydata)
-names(mydata)
-
-hist(MinutesTo50, right=FALSE, breaks=0:7)
-max(MinutesTo50, na.rm=TRUE)
-
-min(MinutesTo50, na.rm=TRUE)
-
-hist(MinutesTo100, right=FALSE, breaks=0:18)
 ###############################################
 
 #Models with cleandata
@@ -951,27 +936,6 @@ plot(ZspCountGoPro, InitialPercentMoving)
 
 plot(StartingQuantityZsp, ZspCountGoPro)
 
-##############################
-##############################
-##############################
-
-############################################
-#Figures
-
-#Starting temperature and 50% immobility temperature#
-ggplot(cleandata, aes(x = StartTemp, y = X50Temp)) +
-  geom_point() +
-  labs(cex.lab=1, x = "Starting Temperature (°C)", y = "Temperature (°C) at 50% Immobility") +
-  theme_bw() +
-  theme(text = element_text(size = 25))   
-
-#Separated by block
-ggplot(cleandata, aes(x = StartTemp, y = X50Temp, color = Block)) +
-  geom_point() +
-  labs(x = "Starting Temperature (°C)", y = "Temperature (°C) at 50% Immobility") +
-  theme_bw()
-
-
 #########################
 #########################
 #########################
@@ -1011,68 +975,11 @@ plot3<-ggplot(cleandata, aes(x = AvgHOBOTemp, y = StartingQuantityZsp)) +
 ggarrange(plot1, plot2, plot3, ncol=1)
 
 
-
-#########################
-#########################
-#########################
-
-#Plot for zoospore density and gopro counts linear relationship with cleandata2
-
-ggplot(cleandata2, aes(x = ZspCountGoPro, y = StartingQuantityZsp)) +
-  geom_point() +
-  xlab("Zoospore density from photographs") + 
-  ylab("Zoospore density estimates") +
-  theme_bw(base_size=25)
-
-#############################
-residuals(model)
-#store, add to dataset
-#pivot again with residuals
-
-ggplot(mydata, aes(x = CurrentAccTemp, y = residuals(model1))) +
-  geom_point() +
-  geom_errorbar(data=mydata2,aes(ymin=X50Temp-X50TempSE, ymax=X50Temp+X50TempSE), width=.2) +
-  labs(x = "Acclimation Temperature (°C)", y = "Temperature (°C) at 50% Immobility") +
-  theme_bw()
-
-######################################################################################
-#Acclimation temperature and 50% immobility temperature#
-ggplot(mydata, aes(x = AvgHOBOTemp, y = X50Temp)) +
-  geom_point() +
-  geom_point(data=mydata2,size=5,shape=0) +
-  geom_errorbar(data=mydata2,aes(ymin=X50Temp-X50TempSE, ymax=X50Temp+X50TempSE), width=.2) +
-  labs(x = "Acclimation Temperature (°C)", y = "Temperature (°C) at 50% Immobility") +
-  theme_bw()
-
-####################################
-#Starting temperature and 100% immobility temperature#
-ggplot(mydata, aes(x = StartTemp, y = X100Temp)) +
-  geom_point() +
-  labs(x = "Starting Temperature (°C)", y = "Temperature (°C) at 100% Immobility") +
-  theme_bw() +
-  theme(text = element_text(size = 25))   
-
-#########
-#Acclimation temperature and 100% immobility temperature#
-ggplot(mydata, aes(x = AvgHOBOTemp, y = X100Temp)) +
-  geom_point() +
-  geom_point(data=mydata2,size=5,shape=0) +
-  geom_errorbar(data=mydata2,aes(ymin=X100Temp-X100TempSE, ymax=X100Temp+X100TempSE), width=.2) +
-  labs(x = "Acclimation Temperature (°C)", y = "Temperature (°C) at 100% Immobility") +
-  theme_bw()
-
-#jitters error bars, how fix??#
-ggplot(mydata, aes(x = jitter(AccTemp, 0.1), y = X100Temp)) +
-  geom_point() +
-  geom_point(data=mydata2,size=5,shape=0) +
-  geom_errorbar(data=mydata2,aes(ymin=X100Temp-X100TempSE, ymax=X100Temp+X100TempSE), width=.2) +
-  labs(x = "Acclimation Temperature (°C)", y = "Temperature (°C) at 100% Immobility") +
-  theme_bw()
 ############################################
 #Final Manuscript Figure 2#
 
 #CT50 and Start Temp
-plot1<- ggplot(mydata, aes(x = StartTemp, y = X50Temp)) +
+plot1<- ggplot(cleandata, aes(x = StartTemp, y = X50Temp)) +
   geom_point() +
   geom_smooth(method = "lm") +
   xlab("") + 
@@ -1082,7 +989,7 @@ plot1<- ggplot(mydata, aes(x = StartTemp, y = X50Temp)) +
         plot.margin=unit(c(1.5,0.2,-1,0), "cm"))+ 
   labs(subtitle="a")
 #CT100 and Start Temp
-plot2<- ggplot(mydata, aes(x = StartTemp, y = X100Temp)) +
+plot2<- ggplot(cleandata, aes(x = StartTemp, y = X100Temp)) +
   geom_point() +
   geom_smooth(method = "lm") +
   xlab("Starting temperature (°C)") +
@@ -1092,7 +999,7 @@ plot2<- ggplot(mydata, aes(x = StartTemp, y = X100Temp)) +
         plot.margin=unit(c(0,0.2,0.5,0), "cm"))+ 
   labs(subtitle="c")
 #CT50 and Zoospore Density
-plot3<- ggplot(mydata, aes(x = StartingQuantityZsp, y = X50Temp)) +
+plot3<- ggplot(cleandata, aes(x = StartingQuantityZsp, y = X50Temp)) +
   geom_point() +
   geom_smooth(method = "lm") +
   labs(cex.lab=1, x = "", y = "") +
@@ -1101,7 +1008,7 @@ plot3<- ggplot(mydata, aes(x = StartingQuantityZsp, y = X50Temp)) +
         plot.margin=unit(c(1.5,0.5,-1,0), "cm")) + 
   labs(subtitle="b")
 #CT100 and Zoospore Density
-plot4<- ggplot(mydata, aes(x = StartingQuantityZsp, y = X100Temp)) +
+plot4<- ggplot(cleandata, aes(x = StartingQuantityZsp, y = X100Temp)) +
   geom_point() +
   geom_smooth(method = "lm") +
   labs(cex.lab=1, x = "Zoospore density", y = "") +
