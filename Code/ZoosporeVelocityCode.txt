@@ -353,345 +353,6 @@ W = 0.9282, p-value = 0.009044
 
 plot(model)
 
-##########################################
-# Constants
-K <- 273.15
-k <- 8.62*10^-5
-
-##########################################
-# General functions
-
-# Xiao et al. 2011 - AIC calculation
-AIC.Xiao <- function(numParams, loglik, n){
-  numParams <- numParams+1
-  2*numParams-2*loglik
-}
-
-#_
-# MTE models for single-species processes (metabolic proxies)
-
-# Boltzmann-Arrhenius (BA) equation
-ba <- function(x, To, PTo, Ea){
-  To <- To+K
-  y<-PTo*exp(-(Ea/k)*(1/(x+K)-1/To))
-}
-
-# Sharpe-Schoolfield (SS) equation
-ss <- function(x, To, PTo, Ea, Ed, Th){
-  To <- To+K
-  y<-PTo*exp(-(Ea/k)*(1/(x+K)-1/To))*(1+exp((Ed/k)*(1/Th-1/(x+K))))^-1
-}
-#########################################################################
-
-# zoospore acclimation?
-zoosporeSwim <- nls(AvgSpeedTotalMicroms~ss(x=StageAdjustedTemp, To=10, PTo, Ea, Ed, Th), start=c(PTo=60, Ea=.65, Ed=3.25, Th=300), data=swimData, control=c(warnOnly=TRUE))
-summary(zoosporeSwim)
-Parameters:
-    Estimate Std. Error t value Pr(>|t|)    
-PTo  82.9291    82.0362   1.011    0.318    
-Ea    0.9107     0.9496   0.959    0.343    
-Ed    0.9636     0.6439   1.497    0.142    
-Th  283.7036    15.4121  18.408   <2e-16 ***
-
-
-zoo<-c(coef(zoosporeSwim)[1],coef(zoosporeSwim)[2],coef(zoosporeSwim)[3],coef(zoosporeSwim)[4])
-plot(swimData$StageAdjustedTemp,swimData$AvgSpeedTotalMicroms, xlim=c(0,35), ylim=c(0,80))
-
-acclimation <- function(x, Tacc, To, pTo, b.Ea, m.Ea, q.Ea, Ed, Th){
-	To<-To+K
-	Ea<-b.Ea+(m.Ea*Tacc)+(q.Ea*Tacc^2)
-	y<-pTo*exp(-Ea/k*(1/(x+K)-1/To))*(1+exp(Ed/k*(1/Th-1/(x+K))))^-1
-}
-
-test<-nls(AvgSpeedTotalMicroms~acclimation(x=StageAdjustedTemp, Tacc=AccTemp, To=10, pTo, b.Ea, m.Ea, q.Ea, Ed, Th),
-	data=swimData, start=c(pTo=50, b.Ea=.65, m.Ea=0, q.Ea=0,Ed=3.25, Th=300), control=c(warnOnly=TRUE))
-
-test2<-nls(AvgSpeedTotalMicroms~acclimation(x=StageAdjustedTemp, Tacc=AccTemp, To=10, pTo, b.Ea, m.Ea, q.Ea=0, Ed, Th),
-	data=swimData, start=c(pTo=50, b.Ea=.65, m.Ea=0,Ed=3.25, Th=300), control=c(warnOnly=TRUE))
-
-cold<-subset(swimData, AccTemp==9)
-mid<-subset(swimData, AccTemp==16.5)
-hot<-subset(swimData, AccTemp==24)
-
-par(mfrow=c(1,2))
-#quadratic
-plot(cold$StageAdjustedTemp,cold$AvgSpeedTotalMicroms,col="blue", xlim=c(0, 30), ylim=c(0, 80))
-points(mid$StageAdjustedTemp,mid$AvgSpeedTotalMicroms, col="purple")
-points(hot$StageAdjustedTemp,hot$AvgSpeedTotalMicroms, col="red")
-
-curve(acclimation(x, Tacc=7, To=10, pTo=coef(test)[1], b.Ea=coef(test)[2], m.Ea=coef(test)[3], q.Ea=coef(test)[4], Ed=coef(test)[5], Th=coef(test)[6]), from=0, to=30,add=TRUE, col="blue")
-curve(acclimation(x, Tacc=16, To=10, pTo=coef(test)[1], b.Ea=coef(test)[2], m.Ea=coef(test)[3], q.Ea=coef(test)[4], Ed=coef(test)[5], Th=coef(test)[6]), from=0, to=30,add=TRUE, col="purple")
-curve(acclimation(x, Tacc=25, To=10, pTo=coef(test)[1], b.Ea=coef(test)[2], m.Ea=coef(test)[3], q.Ea=coef(test)[4], Ed=coef(test)[5], Th=coef(test)[6]), from=0, to=30,add=TRUE, col="red")
-#
-#linear
-plot(cold$StageAdjustedTemp,cold$AvgSpeedTotalMicroms, cex=2, pch=1, col="blue", xlab="", ylab="", xlim=c(5, 32), ylim=c(20, 80))
-points(mid$StageAdjustedTemp,mid$AvgSpeedTotalMicroms, cex=2, pch=2, col="purple")
-points(hot$StageAdjustedTemp,hot$AvgSpeedTotalMicroms, cex=2, pch=0, col="red")
-
-curve(acclimation(x, Tacc=7, To=10, pTo=coef(test2)[1], b.Ea=coef(test2)[2], m.Ea=coef(test2)[3], q.Ea=0, Ed=coef(test2)[4], Th=coef(test2)[5]), from=5, to=32,add=TRUE, col="blue")
-curve(acclimation(x, Tacc=16, To=10, pTo=coef(test2)[1], b.Ea=coef(test2)[2], m.Ea=coef(test2)[3], q.Ea=0, Ed=coef(test2)[4], Th=coef(test2)[5]), from=5, to=32,add=TRUE, col="purple")
-curve(acclimation(x, Tacc=25, To=10, pTo=coef(test2)[1], b.Ea=coef(test2)[2], m.Ea=coef(test2)[3], q.Ea=0, Ed=coef(test2)[4], Th=coef(test2)[5]), from=5, to=32,add=TRUE, col="red")
-
-###AIC 2021ZoosporeMasterDatasheet##
-##Pivot##
-AIC(zoosporeSwim)
-#283.097
-AIC(test)
-#283.7771
-AIC(test2)
-#285.0948
-
-#Simplest model is the one without acclimation#
-
-
-##############
-#Individual figures#
-par(mfrow=c(1,1))
-par(mar=c(5,5,4,1)+.1)
-#quadratic
-plot(cold$StageAdjustedTemp,cold$AvgSpeedTotalMicroms, cex=2, pch=1, col="blue", cex.axis=1.5, cex.lab=1.8, xlab="Performance temperature (°C)", ylab=expression(paste("Zoospore velocity (",mu,"m ",s^-1 ,")")), xlim=c(7, 30), ylim=c(30, 82))
-points(mid$StageAdjustedTemp,mid$AvgSpeedTotalMicroms, cex=2, pch=2, col="purple")
-points(hot$StageAdjustedTemp,hot$AvgSpeedTotalMicroms, cex=2, pch=0, col="red")
-
-curve(acclimation(x, Tacc=7, To=10, pTo=coef(test)[1], b.Ea=coef(test)[2], m.Ea=coef(test)[3], q.Ea=coef(test)[4], Ed=coef(test)[5], Th=coef(test)[6]), from=7, to=29,add=TRUE, col="blue")
-curve(acclimation(x, Tacc=16, To=10, pTo=coef(test)[1], b.Ea=coef(test)[2], m.Ea=coef(test)[3], q.Ea=coef(test)[4], Ed=coef(test)[5], Th=coef(test)[6]), from=7, to=29,add=TRUE, col="purple")
-curve(acclimation(x, Tacc=25, To=10, pTo=coef(test)[1], b.Ea=coef(test)[2], m.Ea=coef(test)[3], q.Ea=coef(test)[4], Ed=coef(test)[5], Th=coef(test)[6]), from=7, to=29,add=TRUE, col="red")
-#
-#
-par(mfrow=c(1,1))
-par(mar=c(5,5,4,1)+.1)
-#linear
-plot(cold$StageAdjustedTemp,cold$AvgSpeedTotalMicroms, cex=2, pch=1, col="blue", cex.axis=1.5, cex.lab=1.8, xlab="Performance temperature (°C)", ylab=expression(paste("Zoospore velocity (",mu,"m ",s^-1 ,")")), xlim=c(7, 30), ylim=c(30, 82))
-points(mid$StageAdjustedTemp,mid$AvgSpeedTotalMicroms, cex=2, pch=2, col="purple")
-points(hot$StageAdjustedTemp,hot$AvgSpeedTotalMicroms, cex=2, pch=0, col="red")
-
-curve(acclimation(x, Tacc=7, To=10, pTo=coef(test2)[1], b.Ea=coef(test2)[2], m.Ea=coef(test2)[3], q.Ea=0, Ed=coef(test2)[4], Th=coef(test2)[5]), from=7, to=29,add=TRUE, col="blue")
-curve(acclimation(x, Tacc=16, To=10, pTo=coef(test2)[1], b.Ea=coef(test2)[2], m.Ea=coef(test2)[3], q.Ea=0, Ed=coef(test2)[4], Th=coef(test2)[5]), from=7, to=29,add=TRUE, col="purple")
-curve(acclimation(x, Tacc=25, To=10, pTo=coef(test2)[1], b.Ea=coef(test2)[2], m.Ea=coef(test2)[3], q.Ea=0, Ed=coef(test2)[4], Th=coef(test2)[5]), from=7, to=29,add=TRUE, col="red")
-
-
-########################################
-# Single species thermal performance curves, BA, lnBA, SS, lnSS
-
-# (1) Zoospore swimming speed
-
-# BA
-
-# Normal error distribution
-#Adjusted Summary Data:
-swimBA <- nls(AvgSpeedTotalMicroms~ba(x=StageAdjustedTemp, To=10, PTo, Ea), start=c(PTo=50, Ea=.65), data=swimData, control=c(warnOnly=TRUE))
-sumary(swimBA)
-Parameters:
-    Estimate Std. Error t value Pr(>|t|)    
-PTo 47.05440    1.36271   34.53  < 2e-16 ***
-Ea   0.18943    0.01876   10.10 8.37e-13 ***
-
-plot(swimData$StageAdjustedTemp, swimData$AvgSpeedTotalMicroms)
-curve(ba(x, To=10, PTo=coef(swimBA)[1], Ea=coef(swimBA)[2]), from=0, to=35, add=TRUE)
-
-
-########
-# Standard deviation and log-likelihood calculation
-#Adjusted Summary Data;
-sdnorm <- sd(swimData$AvgSpeedTotalMicroms-ba(x=swimData$StageAdjustedTemp, To=10, PTo=coef(swimBA)[1], Ea=coef(swimBA)[2]))
-ll_norm <- sum(log(dnorm(swimData$AvgSpeedTotalMicroms, ba(x=swimData$StageAdjustedTemp, To=10, PTo=coef(swimBA)[1], Ea=coef(swimBA)[2]), sdnorm)))
-
-# AIC calculation
-#Adjusted Summary Data:
-normAIC <- AIC.Xiao(numParams=2, loglik=ll_norm, n=length(swimData$StageAdjustedTemp))
-normAIC
-#290.0706
-
-################
-
-# Log-normal error distribution (may need to +1 response in line 68)
-#Adjusted Summary Data:
-lnswimBA <- nls(log(AvgSpeedTotalMicroms)~log(ba(x=StageAdjustedTemp, To=10, PTo, Ea)), start=c(PTo=50, Ea=.65), data=swimData, control=c(warnOnly=TRUE))
-summary(lnswimBA)
-Parameters:
-    Estimate Std. Error t value Pr(>|t|)    
-PTo 53.15668    0.92879   57.23  < 2e-16 ***
-Ea   0.20594    0.01994   10.33 4.22e-13 ***
-
-
-plot(swimData$StageAdjustedTemp, log(swimData$AvgSpeedTotalMicroms))
-curve(log(ba(x, To=10, PTo=coef(lnswimBA)[1], Ea=coef(lnswimBA)[2])),from=0, to=35, add=TRUE)
-
-# Standard deviation and log-likelihood calculation (may need to +1 response in line 75)
-#Adjusted Summary Data:
-sdlnorm <- sd(log(swimData$AvgSpeedTotalMicroms)-log(ba(x=swimData$StageAdjustedTemp, To=10, PTo=coef(lnswimBA)[1], Ea=coef(lnswimBA)[2])))
-ll_lnorm <- sum(log(dlnorm(swimData$AvgSpeedTotalMicroms, log(ba(x=swimData$StageAdjustedTemp, To=10, PTo=coef(lnswimBA)[1], Ea=coef(lnswimBA)[2])), sdlnorm)))
-
-
-# AIC calculation
-#Adjusted Summary Data:
-lnormAIC <- AIC.Xiao(numParams=2, loglik=ll_lnorm, n=length(swimData$StageAdjustedTemp))
-lnormAIC
-#288.7699
-
-##################################################
-
-# SS
-
-# Normal error distribution
-#Adjusted Summary Data:
-swimSS <- nls(AvgSpeedTotalMicroms~ss(x=StageAdjustedTemp, To=10, PTo, Ea, Ed, Th), start=c(PTo=60, Ea=.6, Ed=3, Th=303), data=swimData, control=c(warnOnly=TRUE))
-summary(swimSS)
-Parameters:
-    Estimate Std. Error t value Pr(>|t|)    
-PTo  82.9294    82.0365   1.011    0.318    
-Ea    0.9107     0.9496   0.959    0.343    
-Ed    0.9636     0.6439   1.497    0.142    
-Th  283.7035    15.4119  18.408   <2e-16 ***
-
-
-plot(swimData$StageAdjustedTemp,swimData$AvgSpeedTotalMicroms)
-curve(ss(x, To=10, PTo=coef(swimSS)[1], Ea=coef(swimSS)[2], Ed=coef(swimSS)[3], Th=coef(swimSS)[4]), from=0, to=35, add=TRUE)
-
-
-# Standard deviation and log-likelihood calculation
-#Adjusted Summary Data:
-sdnorm <- sd(swimData$AvgSpeedTotalMicroms-ss(x=swimData$StageAdjustedTemp, To=10, PTo=coef(swimSS)[1], Ea=coef(swimSS)[2], Ed=coef(swimSS)[3], Th=coef(swimSS)[4]))
-ll_norm <- sum(log(dnorm(swimData$AvgSpeedTotalMicroms, ss(x=swimData$StageAdjustedTemp, To=10, PTo=coef(swimSS)[1], Ea=coef(swimSS)[2], Ed=coef(swimSS)[3], Th=coef(swimSS)[4]), sdnorm)))
-
-
-
-# AIC calculation
-#Adjusted Summary Data:
-normAIC <- AIC.Xiao(numParams=4, loglik=ll_norm, n=length(swimData$StageAdjustedTemp))
-normAIC
-#283.1086
-
-
-######################################
-# Log-normal error distribution
-
-#Adjusted Summary Data
-lnswimSS <- nls(log(AvgSpeedTotalMicroms)~log(ss(x=StageAdjustedTemp, To=10, PTo, Ea, Ed, Th)), start=c(PTo=50, Ea=.65, Ed=3.25, Th=300), data=swimData, control=c(warnOnly=TRUE))
-summary(lnswimSS)
-Parameters:
-    Estimate Std. Error t value Pr(>|t|)    
-PTo  63.9778    62.2397   1.028 0.310161    
-Ea    0.6883     0.7372   0.934 0.356062    
-Ed    0.8472     0.2294   3.693 0.000662 ***
-Th  289.1832    26.9978  10.711 2.57e-13 ***
-
-plot(swimData$StageAdjustedTemp,log(swimData$AvgSpeedTotalMicroms))
-curve(log(ss(x, To=10, PTo=coef(lnswimSS)[1], Ea=coef(lnswimSS)[2], Ed=coef(lnswimSS)[3], Th=coef(lnswimSS)[4])), from=0, to=35, add=TRUE)
-
-# Standard deviation and log-likelihood calculation
-#Adjusted Summary Data:
-sdlnorm <- sd(log(swimData$AvgSpeedTotalMicroms)-log(ss(x=swimData$StageAdjustedTemp, To=10, PTo=coef(lnswimSS)[1], Ea=coef(lnswimSS)[2], Ed=coef(lnswimSS)[3], Th=coef(lnswimSS)[4])))
-ll_lnorm <- sum(log(dlnorm(swimData$AvgSpeedTotalMicroms, log(ss(x=swimData$StageAdjustedTemp, To=10, PTo=coef(lnswimSS)[1], Ea=coef(lnswimSS)[2], Ed=coef(lnswimSS)[3], Th=coef(lnswimSS)[4])), sdlnorm)))
-
-
-
-# AIC calculation
-#Adjusted Summary Data:
-lnormAIC <- AIC.Xiao(numParams=4, loglik=ll_lnorm, n=length(swimData$StageAdjustedTemp))
-lnormAIC
-#282.1993
-
-
-#################################
-#Figures#
-
-#Comparing BA, lnBA, SS, lnSS Models
-
-par(mfrow = c(2, 2))
-par(mar=c(5,5,4,1)+.1)
-
-#normal BA
-plot(swimData$StageAdjustedTemp, swimData$AvgSpeedTotalMicroms,
-   xlab="Performance temperature (°C)", ylab=expression(paste("Zoospore velocity (μm ",s^-1 ,")")))
-curve(ba(x, To=10, PTo=coef(swimBA)[1], Ea=coef(swimBA)[2]), from=0, to=35, add=TRUE)
-
-#ln BA
-plot(swimData$StageAdjustedTemp, log(swimData$AvgSpeedTotalMicroms),
-   xlab="Performance temperature (°C)", ylab=expression(paste("ln Zoospore velocity  (μm ",s^-1 ,")")))
-curve(log(ba(x, To=10, PTo=coef(lnswimBA)[1], Ea=coef(lnswimBA)[2])),from=0, to=35, add=TRUE)
-
-#normal SS
-plot(swimData$StageAdjustedTemp,swimData$AvgSpeedTotalMicroms,
-   xlab="Performance temperature (°C)", ylab=expression(paste("Zoospore velocity  (μm ",s^-1 ,")")))
-curve(ss(x, To=10, PTo=coef(swimSS)[1], Ea=coef(swimSS)[2], Ed=coef(swimSS)[3], Th=coef(swimSS)[4]), from=0, to=35, add=TRUE)
-
-#ln SS
-plot(swimData$StageAdjustedTemp,log(swimData$AvgSpeedTotalMicroms),
-   xlab="Performance temperature (°C)", ylab=expression(paste("ln Zoospore velocity  (μm ",s^-1 ,")")))
-curve(log(ss(x, To=10, PTo=coef(lnswimSS)[1], Ea=coef(lnswimSS)[2], Ed=coef(lnswimSS)[3], Th=coef(lnswimSS)[4])), from=0, to=35, add=TRUE)
-
-############################
-
-############################
-#Final Figures#
-
-par(mfrow = c(1, 1))
-par(mar=c(4,5,1,5)+.1)
-
-#linear
-coldmodel<-lm(cold$AvgSpeedTotalMicroms ~ cold$StageAdjustedTemp)
-midmodel<-lm(mid$AvgSpeedTotalMicroms ~ mid$StageAdjustedTemp)
-hotmodel<-lm(hot$AvgSpeedTotalMicroms ~ hot$StageAdjustedTemp)
-
-
-plot(cold$StageAdjustedTemp,cold$AvgSpeedTotalMicroms, cex=2, pch=1, col="blue",cex.lab=1.8, cex.axis=1.8, xlab="", ylab=expression(paste("Zoospore velocity (",mu,"m ",s^-1 ,")")), xlim=c(7, 30), ylim=c(30, 90))
-points(mid$StageAdjustedTemp,mid$AvgSpeedTotalMicroms, cex=2, pch=2, col="purple")
-points(hot$StageAdjustedTemp,hot$AvgSpeedTotalMicroms, cex=2, pch=0, col="red")
-
-clip(min(cold$StageAdjustedTemp), max(cold$StageAdjustedTemp), min(cold$AvgSpeedTotalMicroms), max(cold$AvgSpeedTotalMicroms))
-
-abline(coldmodel, col="blue")
-abline(midmodel, col="purple")
-abline(hotmodel, col="red")
-
-#normal BA and SS
-plot(swimData$StageAdjustedTemp, swimData$AvgSpeedTotalMicroms,
-   cex.lab=1.8, cex.axis=1.8,
-   xlab="Performance temperature (°C)", ylab=expression(paste("Zoospore velocity (μm ",s^-1 ,")")),xlim=c(7, 30), ylim=c(30, 90))
-curve(lwd=2, ba(x, To=10, PTo=coef(swimBA)[1], Ea=coef(swimBA)[2]), from=7, to=29, add=TRUE)
-curve(lwd=2, lty=2, ss(x, To=10, PTo=coef(swimSS)[1], Ea=coef(swimSS)[2], Ed=coef(swimSS)[3], Th=coef(swimSS)[4]), from=7, to=29, add=TRUE)
-
-
-#normal BA and SS
-par(mar=c(5,7,1,3)+.5)
-plot(cold$StageAdjustedTemp,cold$AvgSpeedTotalMicroms, cex=2, pch=1, col="blue",cex.lab=3, cex.axis=2, xlab="Performance temperature (°C)", ylab=expression(paste("Zoospore velocity (",mu,"m ",s^-1 ,")")), xlim=c(7, 30), ylim=c(30, 90))
-points(mid$StageAdjustedTemp,mid$AvgSpeedTotalMicroms, cex=2, pch=2, col="purple")
-points(hot$StageAdjustedTemp,hot$AvgSpeedTotalMicroms, cex=2, pch=0, col="red")
-
-curve(lwd=2, ba(x, To=10, PTo=coef(swimBA)[1], Ea=coef(swimBA)[2]), from=7, to=29, add=TRUE)
-curve(lwd=2, lty=2, ss(x, To=10, PTo=coef(swimSS)[1], Ea=coef(swimSS)[2], Ed=coef(swimSS)[3], Th=coef(swimSS)[4]), from=7, to=29, add=TRUE)
-
-#Quadratic
-
-par(mar=c(5,7,1,3)+.5)
-plot(cold$StageAdjustedTemp,cold$AvgSpeedTotalMicroms, cex=2, pch=1, col="blue",cex.lab=3, cex.axis=2, xlab="Performance temperature (°C)", ylab=expression(paste("Zoospore velocity (",mu,"m ",s^-1 ,")")), xlim=c(7, 30), ylim=c(30, 90))
-points(mid$StageAdjustedTemp,mid$AvgSpeedTotalMicroms, cex=2, pch=2, col="purple")
-points(hot$StageAdjustedTemp,hot$AvgSpeedTotalMicroms, cex=2, pch=0, col="red")
-
-curve(5.40977664+4.36248477*x+-0.07360571 *x^2+0.09677459*7, from=9, to=30, lwd=3, add=TRUE)
-
-#Final Manuscript Figure 3
-#ln SS model
-dev.new(width=12.5, height=10, unit="in")
-par(mfrow=c(1,1))
-par(mar=c(5,7,5,3)+.1)
-plot(cold$StageAdjustedTemp,log(cold$AvgSpeedTotalMicroms), cex=2, pch=1, col="blue",cex.lab=3, cex.axis=2, xlab="Performance temperature (°C)", ylab=expression(paste("ln Zoospore velocity (",mu,"m ",s^-1 ,")")), xlim=c(7, 30), ylim=c(3.5, 4.5))
-points(mid$StageAdjustedTemp,log(mid$AvgSpeedTotalMicroms), cex=2, pch=2, col="purple")
-points(hot$StageAdjustedTemp,log(hot$AvgSpeedTotalMicroms), cex=2, pch=0, col="red")
-
-curve(log(ss(x, To=10, PTo=coef(lnswimSS)[1], Ea=coef(lnswimSS)[2], Ed=coef(lnswimSS)[3], Th=coef(lnswimSS)[4])), from=9, to=30, lwd=3, add=TRUE)
-
-
-#normal SS model
-par(mfrow=c(1,1))
-par(mar=c(5,7,1,3)+.5)
-plot(cold$StageAdjustedTemp,cold$AvgSpeedTotalMicroms, cex=2, pch=1, col="blue",cex.lab=3, cex.axis=2, xlab="Performance temperature (°C)", ylab=expression(paste("Zoospore velocity (",mu,"m ",s^-1 ,")")), xlim=c(7, 30), ylim=c(30, 90))
-points(mid$StageAdjustedTemp,mid$AvgSpeedTotalMicroms, cex=2, pch=2, col="purple")
-points(hot$StageAdjustedTemp,hot$AvgSpeedTotalMicroms, cex=2, pch=0, col="red")
-
-curve(ss(x, To=10, PTo=coef(swimSS)[1], Ea=coef(swimSS)[2], Ed=coef(swimSS)[3], Th=coef(swimSS)[4]), from=9, to=30, lwd=3, add=TRUE)
-
 
 ###################################################
 #Quadratic model
@@ -736,11 +397,224 @@ W = 0.97285, p-value = 0.38
 
 plot(model)
 
+#######
 
-par(mfrow=(c(1,1))
+cold<-subset(swimData, AccTemp==9)
+mid<-subset(swimData, AccTemp==16.5)
+hot<-subset(swimData, AccTemp==24)
 
-plot(subset(swimData, AccTemp==7)$StageAdjustedTemp,subset(swimData, AccTemp==7)$AvgSpeedTotalMicroms)
-plot(swimData$StageAdjustedTemp,swimData$AvgSpeedTotalMicroms)
-curve(5.40977664+4.36248477*x+-0.07360571 *x^2+0.09677459*7, col="blue", add=TRUE)
-curve(5.40977664+4.36248477*x+-0.07360571 *x^2+0.09677459*16, col="purple", add=TRUE)
-curve(5.40977664+4.36248477*x+-0.07360571 *x^2+0.09677459*25, col="red", add=TRUE)
+StageAdjTempCtr<-swimData$StageAdjustedTemp-mean(swimData$StageAdjustedTemp)
+swimData2<-cbind(swimData,StageAdjTempCtr)
+
+AccTempCtr<-swimData$AccTemp-mean(swimData$AccTemp)
+swimData2<-cbind(swimData2,AccTempCtr)
+
+
+model<-lm(AvgSpeedTotalMicroms ~ (StageAdjTempCtr + I(StageAdjTempCtr^2))*(AccTempCtr + I(AccTempCtr^2)), data=swimData2)
+Anova(model, test="F")
+Response: AvgSpeedTotalMicroms
+                                     Sum Sq Df  F value    Pr(>F)    
+StageAdjTempCtr                      3912.1  1 159.2032 1.394e-14 ***
+I(StageAdjTempCtr^2)                  242.0  1   9.8475  0.003443 ** 
+AccTempCtr                             32.5  1   1.3242  0.257650    
+I(AccTempCtr^2)                       124.4  1   5.0608  0.030865 *  
+StageAdjTempCtr:AccTempCtr             12.5  1   0.5095  0.480088    
+StageAdjTempCtr:I(AccTempCtr^2)        46.8  1   1.9038  0.176408    
+I(StageAdjTempCtr^2):AccTempCtr       185.4  1   7.5444  0.009445 ** 
+I(StageAdjTempCtr^2):I(AccTempCtr^2)   86.6  1   3.5228  0.068885 .  
+Residuals                             860.1 35                
+
+model<-lm(AvgSpeedTotalMicroms ~ (StageAdjTempCtr + I(StageAdjTempCtr^2))*AccTempCtr + I(AccTempCtr^2)*StageAdjTempCtr, data=swimData2)
+Anova(model, test="F")
+Response: AvgSpeedTotalMicroms
+                                Sum Sq Df  F value    Pr(>F)    
+StageAdjTempCtr                 3879.0  1 147.5182 2.708e-14 ***
+I(StageAdjTempCtr^2)             242.0  1   9.2026  0.004466 ** 
+AccTempCtr                        32.9  1   1.2494  0.271064    
+I(AccTempCtr^2)                  124.4  1   4.7294  0.036302 *  
+StageAdjTempCtr:AccTempCtr        10.2  1   0.3895  0.536479    
+I(StageAdjTempCtr^2):AccTempCtr  164.9  1   6.2727  0.016929 *  
+StageAdjTempCtr:I(AccTempCtr^2)    4.5  1   0.1702  0.682415    
+Residuals                        946.6 36                      
+
+#Final model
+model<-lm(AvgSpeedTotalMicroms ~ (StageAdjTempCtr + I(StageAdjTempCtr^2))*AccTempCtr + I(AccTempCtr^2), data=swimData2)
+Anova(model, test="F")
+Response: AvgSpeedTotalMicroms
+                                Sum Sq Df  F value   Pr(>F)    
+StageAdjTempCtr                 3879.0  1 150.9027 1.27e-14 ***
+I(StageAdjTempCtr^2)             240.7  1   9.3649 0.004102 ** 
+AccTempCtr                        31.1  1   1.2118 0.278091    
+I(AccTempCtr^2)                  124.4  1   4.8379 0.034167 *  
+StageAdjTempCtr:AccTempCtr         9.2  1   0.3583 0.553085    
+I(StageAdjTempCtr^2):AccTempCtr  165.6  1   6.4428 0.015481 *  
+Residuals                        951.1 37                      
+---
+
+residuals(model)
+shapiro.test(residuals(model))
+
+        Shapiro-Wilk normality test
+
+data:  residuals(model)
+W = 0.97938, p-value = 0.6089
+
+plot(model)
+
+
+#Testing for zoospore density effects in final model
+model<-lm(AvgSpeedTotalMicroms ~ (StageAdjTempCtr + I(StageAdjTempCtr^2))*AccTempCtr + I(AccTempCtr^2) + DilutionConcentrationZsp_nl, data=swimData2)
+Anova(model, test="F")
+
+Response: AvgSpeedTotalMicroms
+                                Sum Sq Df  F value    Pr(>F)    
+StageAdjTempCtr                 3862.7  1 151.4670 1.842e-14 ***
+I(StageAdjTempCtr^2)             182.0  1   7.1386   0.01126 *  
+AccTempCtr                        40.6  1   1.5935   0.21495    
+I(AccTempCtr^2)                  119.6  1   4.6900   0.03704 *  
+DilutionConcentrationZsp_nl       33.0  1   1.2952   0.26261    
+StageAdjTempCtr:AccTempCtr         7.3  1   0.2881   0.59476    
+I(StageAdjTempCtr^2):AccTempCtr  169.6  1   6.6507   0.01415 *  
+Residuals                        918.1 36    
+
+residuals(model)
+shapiro.test(residuals(model))
+
+data:  residuals(model)
+W = 0.97637, p-value = 0.4954
+
+plot(model)
+
+#Testing for zoospore density effects by itself
+model<-lm(AvgSpeedTotalMicroms ~ DilutionConcentrationZsp_nl, data=swimData2)
+Anova(model, test="F")
+
+Response: AvgSpeedTotalMicroms
+                            Sum Sq Df F value Pr(>F)
+DilutionConcentrationZsp_nl    1.5  1  0.0109 0.9173
+Residuals                   5610.1 42  
+
+residuals(model)
+shapiro.test(residuals(model))
+data:  residuals(model)
+W = 0.9785, p-value = 0.5748
+
+plot(model)
+
+model<-lm(AvgSpeedTotalMicroms ~ (StageAdjTempCtr + I(StageAdjTempCtr^2))+AccTempCtr + I(AccTempCtr^2), data=swimData2)
+Anova(model, test="F")
+
+Response: AvgSpeedTotalMicroms
+                     Sum Sq Df  F value    Pr(>F)    
+StageAdjTempCtr      3844.6  1 132.5126 4.107e-14 ***
+I(StageAdjTempCtr^2)  243.0  1   8.3760  0.006195 ** 
+AccTempCtr             31.1  1   1.0736  0.306510    
+I(AccTempCtr^2)       131.6  1   4.5349  0.039578 *  
+Residuals            1131.5 39   
+
+############
+#Testing for effects of initial proportion of zoospores moving
+model<-lm(AvgSpeedTotalMicroms ~ MeanFractionMoving, data=swimData)
+Anova(model, test="F")
+
+Response: AvgSpeedTotalMicroms
+                   Sum Sq Df F value Pr(>F)
+MeanFractionMoving  229.6  1  1.7921 0.1879
+Residuals          5382.0 42     
+ 
+
+shapiro.test(residuals(model))
+data:  residuals(model)
+W = 0.96727, p-value = 0.2416
+
+plot(model)
+
+model<-lm(StageAdjustedTemp ~ MeanFractionMoving, data=swimData)
+Anova(model, test="F")
+Response: StageAdjustedTemp
+                   Sum Sq Df F value Pr(>F)
+MeanFractionMoving   15.5  1  0.4088  0.526
+Residuals          1592.9 42  
+
+
+shapiro.test(residuals(model))
+data:  residuals(model)
+W = 0.9282, p-value = 0.009044
+
+plot(model)
+
+
+
+##############################################
+#Figure 3 code:
+
+
+cold<-subset(swimData, AccTemp==9)
+mid<-subset(swimData, AccTemp==16.5)
+hot<-subset(swimData, AccTemp==24)
+
+StageAdjTempCtr<-swimData$StageAdjustedTemp-mean(swimData$StageAdjustedTemp)
+swimData2<-cbind(swimData,StageAdjTempCtr)
+
+AccTempCtr<-swimData$AccTemp-mean(swimData$AccTemp)
+swimData2<-cbind(swimData2,AccTempCtr)
+
+model<-lm(AvgSpeedTotalMicroms ~ (StageAdjustedTemp + I(StageAdjustedTemp^2))*AccTemp + I(AccTemp^2), data=swimData2)
+
+
+newdata<-read.csv(file.choose()) #VelocityNewData.csv
+Predictions1<-predict(model,newdata,interval="confidence")
+
+PredictionsFit<-predict(model,newdata,interval="confidence")[,1]
+as.vector(PredictionsFit)
+
+PredictionsLwr<-predict(model,newdata,interval="confidence")[,2]
+as.vector(PredictionsLwr)
+
+PredictionsUpr<-predict(model,newdata,interval="confidence")[,3]
+as.vector(PredictionsUpr)
+
+newdata2<-cbind(newdata,PredictionsFit,PredictionsLwr,PredictionsUpr)
+
+
+Predictcold<-subset(newdata2, AccTemp==9)
+Predictmid<-subset(newdata2, AccTemp==16.5)
+Predicthot<-subset(newdata2, AccTemp==24)
+
+plot(PredictionsFit~StageAdjustedTemp, data=Predicthot)
+
+#############
+
+par(mgp = c(4, 1, 0), mar = c(5, 7, 1, 3) + 0.5)
+
+#Set up the plot
+plot(cold$StageAdjustedTemp, cold$AvgSpeedTotalMicroms, cex = 2, pch = 1, col = "blue", 
+     cex.lab = 2.5, cex.axis = 2, 
+     xlab = "Performance temperature (°C)", 
+     ylab = expression(paste("Maximum zoospore velocity ( ", mu, "m ", s^-1, ")")), 
+     xlim = c(7, 30), ylim = c(30, 90),
+     xaxs = "i")
+
+# Add confidence intervals using polygon for each group (based on the manual curves)
+
+polygon(c(Predictmid$StageAdjustedTemp, rev(Predictmid$StageAdjustedTemp)), c(Predictmid$PredictionsUpr, rev(Predictmid$PredictionsLwr)), col = rgb(0.3, 0, 0.5, 0.15), border = NA)
+polygon(c(Predicthot$StageAdjustedTemp, rev(Predicthot$StageAdjustedTemp)), c(Predicthot$PredictionsUpr, rev(Predicthot$PredictionsLwr)), col = rgb(0.9, 0, 0, 0.15), border = NA)
+polygon(c(Predictcold$StageAdjustedTemp, rev(Predictcold$StageAdjustedTemp)), c(Predictcold$PredictionsUpr, rev(Predictcold$PredictionsLwr)), col = rgb(0.68, 0.85, 1, 0.5), border = NA)
+
+# Add manually calculated curves
+lines(PredictionsFit~StageAdjustedTemp, col = "blue", lwd = 2, lty = 1, data=Predictcold)
+lines(PredictionsFit~StageAdjustedTemp, col = "purple", lwd = 2, lty = 2, data=Predictmid)
+lines(PredictionsFit~StageAdjustedTemp, col = "red", lwd = 2, lty = 4, data=Predicthot)
+
+
+# Add points for all groups
+points(mid$StageAdjustedTemp, mid$AvgSpeedTotalMicroms, cex = 2, pch = 2, lwd = 2, col = "purple")
+points(hot$StageAdjustedTemp, hot$AvgSpeedTotalMicroms, cex = 2, pch = 0, lwd = 2, col = "red")
+points(cold$StageAdjustedTemp, cold$AvgSpeedTotalMicroms, cex = 2, pch = 1, lwd = 2, col = "blue")
+
+# Add legend
+legend_labels<-c("  9.0 °C","16.5 °C","24.0 °C")
+
+legend(21,45, legend = legend_labels, 
+title = "Acclimation temperature", pch = c(1,2,0), col = c("blue", "purple", "red"), 
+lty = c(1,2,4), lwd = 2, cex = 2)
