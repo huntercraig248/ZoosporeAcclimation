@@ -374,6 +374,7 @@ F-statistic: 6.832 on 3 and 38 DF,  p-value: 0.0008553
 shapiro.test(residuals(model))
 W = 0.89788, p-value = 0.001245
 
+
 plot(model) 
 
 model<-lm(X100Temp ~ I(mean(AvgHOBOTemp)-AvgHOBOTemp)+StartingQuantityZsp+StartTemp, data=cleandata4)
@@ -1073,6 +1074,7 @@ ggplot(mydata, aes(x = jitter(AccTemp, 0.1), y = X100Temp)) +
 #CT50 and Start Temp
 plot1<- ggplot(mydata, aes(x = StartTemp, y = X50Temp)) +
   geom_point() +
+  geom_smooth(method = "lm") +
   xlab("") + 
   ylab(expression('CT'[max]^50~'(°C)')) +
   theme_bw(base_size=25) +
@@ -1082,6 +1084,7 @@ plot1<- ggplot(mydata, aes(x = StartTemp, y = X50Temp)) +
 #CT100 and Start Temp
 plot2<- ggplot(mydata, aes(x = StartTemp, y = X100Temp)) +
   geom_point() +
+  geom_smooth(method = "lm") +
   xlab("Starting temperature (°C)") +
   ylab(expression('CT'[max]^100~'(°C)')) +
   theme_bw(base_size=25) +
@@ -1091,6 +1094,7 @@ plot2<- ggplot(mydata, aes(x = StartTemp, y = X100Temp)) +
 #CT50 and Zoospore Density
 plot3<- ggplot(mydata, aes(x = StartingQuantityZsp, y = X50Temp)) +
   geom_point() +
+  geom_smooth(method = "lm") +
   labs(cex.lab=1, x = "", y = "") +
   theme_bw(base_size=25) +
   theme(legend.position="none",
@@ -1099,6 +1103,7 @@ plot3<- ggplot(mydata, aes(x = StartingQuantityZsp, y = X50Temp)) +
 #CT100 and Zoospore Density
 plot4<- ggplot(mydata, aes(x = StartingQuantityZsp, y = X100Temp)) +
   geom_point() +
+  geom_smooth(method = "lm") +
   labs(cex.lab=1, x = "Zoospore density", y = "") +
   theme_bw(base_size=25) +
   theme(legend.position="none",
