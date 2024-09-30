@@ -1,0 +1,63 @@
+
+#Assuming acclimation time is proportional to mass to 0.25 power
+
+mydata<-read.csv(file.choose()) #2024 Animal Thermal Acclimation Literature Search
+mydata<-subset(mydata,UsedInAnalysis=="Yes")
+names(mydata)
+attach(mydata)
+
+library(survival)
+library(car)
+
+#exponential fit
+model<-survreg(Surv(MinDaysToFullyAcclimate*MassAvg_g^-0.25,FullyAcclimatedYN) ~ 1, data=mydata, na.action=na.exclude, dist="exponential")
+AIC(model)
+#697.6596
+
+#gaussian fit
+model<-survreg(Surv(MinDaysToFullyAcclimate*MassAvg_g^-0.25,FullyAcclimatedYN) ~ 1, data=mydata, na.action=na.exclude, dist="gaussian")
+AIC(model)
+#1004.846
+
+#extreme value fit
+model<-survreg(Surv(MinDaysToFullyAcclimate*MassAvg_g^-0.25,FullyAcclimatedYN) ~ 1, data=mydata, na.action=na.exclude, dist="extreme")
+AIC(model)
+#1135.334
+
+#weibull fit
+model<-survreg(Surv(MinDaysToFullyAcclimate*MassAvg_g^-0.25,FullyAcclimatedYN) ~ 1, data=mydata, na.action=na.exclude, dist="weibull")
+AIC(model)
+#667.5199
+
+summary(model)
+#Call:
+#survreg(formula = Surv(MinDaysToFullyAcclimate * MassAvg_g^-0.25, 
+#    FullyAcclimatedYN) ~ 1, data = mydata, na.action = na.exclude, 
+#    dist = "weibull")
+#             Value Std. Error    z       p
+#(Intercept) 1.5740     0.1242 12.7 < 2e-16
+#Log(scale)  0.2996     0.0588  5.1 3.4e-07
+
+#Scale= 1.35 
+
+#Weibull distribution
+#Loglik(model)= -331.8   Loglik(intercept only)= -331.8
+#Number of Newton-Raphson Iterations: 5 
+#n=153 (3 observations deleted due to missingness)
+
+C.Predictions<-predict(model, type="quantile", p=c(0.025,0.25,0.5,0.75,0.975))[1,]
+C.Predictions 
+#0.03382442  0.89838225  2.94305613  7.49887569 28.08836563
+
+#Calculate geometric mean mass in grams across all literature values
+exp(mean(log(mydata$MassAvg_g)))
+#3.082806
+
+#Estimated times to full acclimation for geometric mean of literature masses in days
+C.Predictions*3.082806^0.25
+#0.0448195  1.1904131  3.8997350  9.9364832 37.2188559
+
+#Estimated times to full acclimation for Bd zoospore mass, converted to minutes
+C.Predictions*3.35e-11^0.25*24*60
+#0.1171802  3.1123244 10.1958218 25.9788455 97.3083624
+
